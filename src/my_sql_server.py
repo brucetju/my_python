@@ -1,4 +1,4 @@
-import pymssql
+﻿import pymssql
 
 class SQL_Server():
 	"sql server"
@@ -44,10 +44,11 @@ class SQL_Server():
                 lst_search_tb_names = []
                 lst_tb_names = [] #空列表，存放表名称
 
+                file = open(lst_word[0]+".txt","w")
                 with pymssql.connect(self.host_add, self.user_name, self.passwd, self.db_name,charset="utf8") as conn:
                         with conn.cursor(as_dict=True) as cursor:   # 数据存放到字典中
                                 if(tb_name == ""):#搜索整个数据库
-                                        cursor.execute('select name from sys.tables order by name',2)
+                                        cursor.execute('select name from sys.tables order by name')
                                         for row in cursor:
                                                 lst_tb_names.append(row['name'])
                                         #print("total",str(len(lst_tb_names)),"tables in database.")
@@ -62,7 +63,9 @@ class SQL_Server():
                                         lst_search_col_names = []
                                         lst_col_names = []
                                         
-                                        cursor.execute("select name from syscolumns where id=object_id('"+ tb_name + "')")
+                                        cmd = "select name from syscolumns where id=object_id('"+ current_tb_name + "')"
+                                        cursor.execute(cmd)
+                                        #print(cmd)
                                         for line in cursor:
                                                 lst_col_names.append(line['name'])
                                         #print("total",str(len(lst_col_names)),"cols in",current_tb_name)
@@ -78,24 +81,30 @@ class SQL_Server():
                                                 for col_index,current_col_name in enumerate(lst_search_col_names): #枚举所有的列
                                                         
                                                         cmd = "select " + "*" + " from "+ current_tb_name +" where "+ str(current_col_name) +" like '%"+word+"%'"
-                                                        #print(cmd)
-                                                        cursor.execute(cmd)
-                                                        for line in cursor:
-                                                                print("find with cmd:",cmd)
-                                                                all_info = "find " + word + "in col:" + current_col_name+":\r\n"
-                                                                for index,col in enumerate(lst_col_names):
-                                                                        all_info += "||" + str(index) +":" + str(col) + ":" + str(line[col]) + "\r\n"
-                                                              
-                                                                tb_name2words[current_tb_name][word].append(all_info)
-                                                                
+                                                        try:
+                                                                #print(cmd)
+                                                                cursor.execute(cmd)
+                                                                for line in cursor:
+                                                                        #print("find with cmd:",cmd)
+                                                                        all_info = "find " + word + "in col:" + current_col_name+":\r\n"
+                                                                        for index,col in enumerate(lst_col_names):
+                                                                                all_info += "||" + str(index) +":" + str(col) + ":" + str(line[col]) + "\r\n"
+                                                                      
+                                                                        tb_name2words[current_tb_name][word].append(all_info)
+                                                        except Exception as e:
+                                                                pass
+                                                                print("error cmd: ",cmd)
                                 for tb_name in tb_name2words:
-                                        all_found = True
+                                        count = 0
                                         for word in lst_word:
-                                                if(not tb_name2words[tb_name].__contains__(word)):
-                                                        all_found = False
-                                        if(all_found):
+                                                if(len(tb_name2words[tb_name][word]) != 0):
+                                                        count += 1
+                                        if(count==len(lst_word)):
                                                 print("found all words in ",tb_name)
+                                                file.write("found all words in " + tb_name)
                                                 for word in lst_word:
                                                         for item in tb_name2words[tb_name][word]:
                                                                 print(item)
+                                                                file.write(item)
 																
+                file.close()

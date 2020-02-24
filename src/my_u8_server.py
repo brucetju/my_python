@@ -12,6 +12,13 @@ class U8_Server():
 		self.Inventory_name = 'cInvName'#存货名称
 		self.Inventory_keys = [self.Inventory_code,self.Inventory_name]
 
+                #物料类型
+		self.InventoryClass = "InventoryClass"
+		self.InventoryClass_cInvCCode = "cInvCCode"
+		self.InventoryClass_cInvCName = "cInvCName"
+		self.InventoryClass_cBarCode = "cBarCode"
+                
+                
 		# 请购人 code -> name
 		self.Person = 'Person'#职员档案
 		self.Person_code = 'cPersonCode'
