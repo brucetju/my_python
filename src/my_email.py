@@ -22,11 +22,13 @@ class MyEmail():
 		
 		self.body = '\r\n'.join((      #组合sendmail方法的邮件主体内容，各段以"\r\n"进行分离
 					"From: %s" %self.from_name,
+                                        #"From: %s" %"admin",
 					"TO: %s" %self.to_list,
 					"subject: %s" %self.subject,
 					"",
 					self.text_msg
 					))
+		print(self.body)
 	
 	def send(self):
 		try:

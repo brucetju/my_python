@@ -10,7 +10,7 @@ def connect(config):
 
     return sql_server
 
-def get_qg_exec_info(sql_server,file_name):
+def get_qg_exec_info(sql_server,file_name=""):
     '''
     获取请购执行列表，并存入file_name文件.
     bug:
@@ -315,7 +315,10 @@ def get_qg_exec_info(sql_server,file_name):
             exec_line.set_RdRecord01_info("", "")
             
             lst_exec_lines.append(exec_line.get_info())
-                
-    write_from_list(lst_exec_lines,file_name)
-    print("成功生成请购执行列表:",file_name)
+
+    if(file_name == ""):
+        return lst_exec_lines
+    else:
+        write_from_list(lst_exec_lines,file_name)
+        print("成功生成请购执行列表:",file_name)
 
