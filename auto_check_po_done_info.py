@@ -2,11 +2,12 @@ from src.my_u8_apps import *
 from datetime import *
 from src.my_email import *
 
-sql_server = connect("config.ini")
+cur_path = "/home/python/po_exec_info/my_python/"
+sql_server = connect(cur_path + "config.ini")
 
 all_lines = get_qg_exec_info(sql_server)
 
-lst_po_done_old = read_txt_to_list("po_done_result.txt")
+lst_po_done_old = read_txt_to_list(cur_path + "po_done_result.txt")
 dic_po_done_old = dict()
 for po_done_info in lst_po_done_old:
     po = po_done_info.split(',')[0]
@@ -28,7 +29,7 @@ for index,each_line in enumerate(all_lines):
 lst_po_done_new = list()
 for po in dic_po_done_new:
     lst_po_done_new.append(po+","+ str(dic_po_done_new[po]))
-write_list_to_txt(lst_po_done_new,"po_done_result.txt")
+write_list_to_txt(lst_po_done_new,cur_path + "po_done_result.txt")
 
 dic_po_done_added = dict()
 for po in dic_po_done_new:
@@ -47,9 +48,16 @@ if(dic_po_done_added.__len__ != 0):
 
 if(all_msg != ""):
     my_email = MyEmail("smtp.mxhichina.com",25,"jhtdesign@jht-design.com","Jhtdesignteam01")
-    my_email.config_text_email("jhtdesign@jht-design.com",["pengyu@jht-design.com"],
-                               "po is ready",all_msg)
+    my_email.config_text_email("jhtdesign@jht-design.com",["pengyu@jht-design.com"],"po is ready",all_msg)
+    my_email.send()
+    my_email.config_text_email("jhtdesign@jht-design.com",["yfzl_a@jht-design.com"],"po is ready",all_msg)
+    my_email.send()
+    my_email.config_text_email("jhtdesign@jht-design.com",["shenqian@jht-design.com"],"po is ready",all_msg)
+    my_email.send()
+    my_email.config_text_email("jhtdesign@jht-design.com",["qiuwei@jht-design.com"],"po is ready",all_msg)
+    my_email.send()
+    my_email.config_text_email("jhtdesign@jht-design.com",["liujie@jht-design.com"],"po is ready",all_msg)
     my_email.send()
 
-write_list_to_txt(dic_po_done_added,"last_added_po_done_result.txt")
+write_list_to_txt(dic_po_done_added,cur_path + "last_added_po_done_result.txt")
 print(all_msg)

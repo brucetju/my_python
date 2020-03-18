@@ -16,7 +16,8 @@ class MyEmail():
 		self.from_name = from_name
 		self.to_list = ""
 		for to in to_list:
-			self.to_list += to + ","
+			self.to_list += to + ";"
+		print(self.to_list)
 		self.subject = subject
 		self.text_msg = text_msg
 		
