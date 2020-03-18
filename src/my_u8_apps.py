@@ -1,7 +1,10 @@
 from src.my_sql_server import *
 from src.my_u8_server import *
-from src.my_excel import *
 from src.my_txt import *
+
+import xlrd
+from  xlwt import *
+from xlutils.copy import  copy
 
 def connect(config):
     "连接到U8服务器，返回sql_server"
@@ -10,6 +13,112 @@ def connect(config):
 
     return sql_server
 
+def write_from_list(lst_alllines,file_name):
+    '''
+    写入excel文件，检查已到货项并返回
+    '''
+    
+    workbook = Workbook(encoding='utf-8')
+    worksheet = workbook.add_sheet('请购执行进度表')
+    for row, exec_line in enumerate(lst_alllines):
+        if(row != 0):
+            for col, value in enumerate(exec_line.get_info()):
+                worksheet.write(row, col, value)
+                width = (len(str(value)) + 2) * 256
+                if (worksheet.col(col).width < width):
+                    worksheet.col(col).width = width
+        else:
+            for col, value in enumerate(exec_line):
+                worksheet.write(row, col, value)
+                width = (len(str(value)) + 2) * 256
+                if (worksheet.col(col).width < width):
+                    worksheet.col(col).width = width
+    workbook.save(file_name)
+
+def write_from_list1(lst_alllines,file_name):
+    '''
+    写入excel文件，检查已到货项并返回
+    '''
+    dic_po_done = dict()
+    dic_po_wl_qg_quant = dict()
+    dic_po_wl_rk_quant = dict()
+    last_qg_code = ""
+    
+    for row, exec_line in enumerate(lst_alllines):
+        if(row != 0):
+            if(not dic_po_done.__contains__(exec_line.qg_code)):
+                dic_po_done[exec_line.qg_code] = 1
+
+                if(last_qg_code != ""):
+                    #检查是否到齐
+                    for wl_code in dic_po_wl_qg_quant:
+                        if(dic_po_wl_qg_quant[wl_code] > dic_po_wl_rk_quant[wl_code]):
+                            #print("qg_quant",str(dic_po_wl_qg_quant[wl_code]))
+                            #print("rk_quant",str(dic_po_wl_rk_quant[wl_code]))
+                            dic_po_done[last_qg_code] = 0
+                dic_po_wl_qg_quant = dict()
+                dic_po_wl_rk_quant = dict()
+                last_qg_code = exec_line.qg_code
+            if(str(exec_line.wl_quant) == ""):
+                exec_line.wl_quant = 0
+            if(str(exec_line.rk_quant) == ""):
+                exec_line.rk_quant = 0
+            dic_po_wl_qg_quant[exec_line.wl_code] = int(exec_line.wl_quant)
+            if(dic_po_wl_rk_quant.__contains__(exec_line.wl_code)):
+                dic_po_wl_rk_quant[exec_line.wl_code] += int(exec_line.rk_quant)
+            else:
+                dic_po_wl_rk_quant[exec_line.wl_code] = int(exec_line.rk_quant)
+    #最后一项的检查
+    for wl_code in dic_po_wl_qg_quant:
+        if(dic_po_wl_qg_quant[wl_code] < dic_po_wl_rk_quant[wl_code]):
+            dic_po_done[last_qg_code] = 0
+
+    dic_po_done_line = list()
+    for row,exec_line in enumerate(lst_alllines):
+        if(row!=0):
+            if(dic_po_done[exec_line.qg_code] == 1):
+                dic_po_done_line.append((exec_line))
+
+    done_style = XFStyle()
+    notdone_style = XFStyle()
+    
+    pattern1 = Pattern()
+    pattern1.pattern =Pattern.SOLID_PATTERN
+    pattern1.pattern_fore_colour = Style.colour_map['green']
+    done_style.pattern = pattern1
+
+    pattern2 = Pattern()
+    pattern2.pattern =Pattern.SOLID_PATTERN
+    pattern2.pattern_fore_colour = Style.colour_map['white']
+    notdone_style.pattern = pattern2
+
+    dic_po_style = dict()
+    for qg_code in dic_po_done:
+        if(dic_po_done[qg_code] ==1):
+            dic_po_style[qg_code] = done_style
+            #print("done")
+        else:
+            dic_po_style[qg_code] = notdone_style
+        
+        
+    workbook = Workbook(encoding='utf-8')
+    worksheet = workbook.add_sheet('请购执行进度表')
+    for row, exec_line in enumerate(lst_alllines):
+        if(row != 0):
+            for col, value in enumerate(exec_line.get_info()):
+                worksheet.write(row, col, value,dic_po_style[exec_line.qg_code])
+                width = (len(str(value)) + 2) * 256
+                if (worksheet.col(col).width < width):
+                    worksheet.col(col).width = width
+        else:
+            for col, value in enumerate(exec_line):
+                worksheet.write(row, col, value)
+                width = (len(str(value)) + 2) * 256
+                if (worksheet.col(col).width < width):
+                    worksheet.col(col).width = width
+    workbook.save(file_name)
+    return dic_po_done_line
+    
 def get_qg_exec_info(sql_server,file_name=""):
     '''
     获取请购执行列表，并存入file_name文件.
@@ -290,12 +399,12 @@ def get_qg_exec_info(sql_server,file_name=""):
                                 else:
                                     exec_line.set_RdRecord01_info("", "")
 
-                                lst_exec_lines.append(exec_line.get_info())
+                                lst_exec_lines.append(exec_line)
                         else:
                             exec_line.set_rdrecords01_info("", "", "")
                             exec_line.set_RdRecord01_info("", "")
 
-                            lst_exec_lines.append(exec_line.get_info())
+                            lst_exec_lines.append(exec_line)
                             
                 else:
                     exec_line.set_PU_ArrivalVouchs_info("","","")
@@ -303,7 +412,7 @@ def get_qg_exec_info(sql_server,file_name=""):
                     exec_line.set_rdrecords01_info("", "", "")
                     exec_line.set_RdRecord01_info("", "")
 
-                    lst_exec_lines.append(exec_line.get_info())
+                    lst_exec_lines.append(exec_line)
                     
         else:
             exec_line.set_PO_Podetails_info("","","","")
@@ -314,11 +423,11 @@ def get_qg_exec_info(sql_server,file_name=""):
             exec_line.set_rdrecords01_info("", "", "")
             exec_line.set_RdRecord01_info("", "")
             
-            lst_exec_lines.append(exec_line.get_info())
+            lst_exec_lines.append(exec_line)
 
     if(file_name == ""):
         return lst_exec_lines
     else:
-        write_from_list(lst_exec_lines,file_name)
+        write_from_list1(lst_exec_lines,file_name)
         print("成功生成请购执行列表:",file_name)
 
