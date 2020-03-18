@@ -5,7 +5,7 @@ from src.my_email import *
 
 
 cur_path = "/home/python/po_exec_info/my_python/"
-cur_path = ""
+#cur_path = ""
 sql_server = connect(cur_path + "config.ini")
 
 all_lines = get_qg_exec_info(sql_server)
@@ -48,4 +48,4 @@ if(all_msg != ""):
 #    my_email.send()
 
 write_list_to_txt([all_msg],cur_path + "last_added_po_done_result.txt")
-print(all_msg)
+#print(all_msg)

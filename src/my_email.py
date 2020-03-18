@@ -1,5 +1,8 @@
 import smtplib
 from smtplib import SMTP
+from email.mime.text import MIMEText
+from email.header import Header
+
 '''
 阿里邮箱服务器:host_name="smtp.mxhichina.com",port = 25
 '''
@@ -13,6 +16,11 @@ class MyEmail():
 		self.passwd = passwd
 		
 	def config_text_email(self,from_name,to_list,subject,text_msg):
+		self.message = MIMEText(text_msg,'plain','utf-8')
+		self.message['From'] = from_name
+		self.message['To'] = ','.join(to_list)
+		self.message['Subject'] = Header(subject,'utf-8')
+
 		self.from_name = from_name
 		self.to_list = ""
 		for to in to_list:
@@ -36,7 +44,8 @@ class MyEmail():
 			server = SMTP()#创建一个smtp对象
 			server.connect(self.host_name,str(self.port))
 			server.login(self.user_name,self.passwd)
-			server.sendmail(self.from_name,self.to_list,self.body)
+			#server.sendmail(self.from_name,self.to_list,self.body)
+			server.sendmail(self.from_name,self.to_list,self.message.as_string())
 			server.quit()
 			print("成功向"+ self.to_list +"发送邮件")
 			return True
