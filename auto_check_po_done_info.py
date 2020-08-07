@@ -85,7 +85,7 @@ if(all_msg != ""):
     to_list.append("pengyu@jht-design.com")
     to_list.append("yfzl_a@jht-design.com")
     to_list.append("shenqian@jht-design.com")
-    to_list.append("liujie@jht-design.com)
+    to_list.append("qiuwei@jht-design.com")
     for email in to_list:
         my_email.config_text_email("jhtdesign@jht-design.com",[email],"请购单已入库通知",all_msg)
         my_email.send()
